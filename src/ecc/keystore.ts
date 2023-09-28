@@ -1,42 +1,68 @@
-import IDB from '../idb.js'
-import keys from './keys.js'
-import operations from './operations.js'
-import config from '../config.js'
-import utils from '../utils.js'
-import KeyStoreBase from '../keystore/base.js'
-import { KeyStore, Config, KeyUse, CryptoSystem, PrivateKey } from '../types.js'
+import IDB from "../idb.js";
+import keys from "./keys.js";
+import operations from "./operations.js";
+import config from "../config.js";
+import utils from "../utils.js";
+import KeyStoreBase from "../keystore/base.js";
+import {
+  KeyStore,
+  Config,
+  KeyUse,
+  CryptoSystem,
+  PrivateKey,
+} from "../types.js";
 
 export class ECCKeyStore extends KeyStoreBase implements KeyStore {
-
-  static async init(maybeCfg?: Partial<Config>): Promise<ECCKeyStore> {
+  static async init(
+    maybeCfg?: Partial<Config>,
+    store?: LocalForage
+  ): Promise<ECCKeyStore> {
     const cfg = config.normalize({
       ...(maybeCfg || {}),
-      type: CryptoSystem.ECC
-    })
-    const { curve, storeName, exchangeKeyName, writeKeyName } = cfg
+      type: CryptoSystem.ECC,
+    });
+    const { storeName } = cfg;
 
-    const store = IDB.createStore(storeName)
-    await IDB.createIfDoesNotExist(exchangeKeyName, () => (
-      keys.makeKeypair(curve, KeyUse.Exchange)
-    ), store)
-    await IDB.createIfDoesNotExist(writeKeyName, () => (
-      keys.makeKeypair(curve, KeyUse.Write)
-    ), store)
+    if (store === undefined) {
+      store = IDB.createStore(storeName);
+    }
 
-    return new ECCKeyStore(cfg, store)
+    return new ECCKeyStore(cfg, store);
   }
 
+  async addKeypair(
+    writeKeyName: string,
+    exchangeKeyName: string
+  ): Promise<ECCKeyStore> {
+    await IDB.createIfDoesNotExist(
+      exchangeKeyName,
+      () => keys.makeKeypair(this.cfg.curve, KeyUse.Exchange),
+      this.store
+    );
+    await IDB.createIfDoesNotExist(
+      writeKeyName,
+      () => keys.makeKeypair(this.cfg.curve, KeyUse.Write),
+      this.store
+    );
+    return this;
+  }
 
-  async sign(msg: string, cfg?: Partial<Config>): Promise<string> {
-    const mergedCfg = config.merge(this.cfg, cfg)
-    const writeKey = await this.writeKey()
+  async sign(
+    msg: string,
+    writeKeyName: string,
+    cfg?: Partial<Config>
+  ): Promise<string> {
+    const mergedCfg = config.merge(this.cfg, cfg);
+    const writeKey = await this.writeKey(writeKeyName);
 
-    return utils.arrBufToBase64(await operations.sign(
-      msg,
-      writeKey.privateKey as PrivateKey,
-      mergedCfg.charSize,
-      mergedCfg.hashAlg
-    ))
+    return utils.arrBufToBase64(
+      await operations.sign(
+        msg,
+        writeKey.privateKey as PrivateKey,
+        mergedCfg.charSize,
+        mergedCfg.hashAlg
+      )
+    );
   }
 
   async verify(
@@ -45,7 +71,7 @@ export class ECCKeyStore extends KeyStoreBase implements KeyStore {
     publicKey: string,
     cfg?: Partial<Config>
   ): Promise<boolean> {
-    const mergedCfg = config.merge(this.cfg, cfg)
+    const mergedCfg = config.merge(this.cfg, cfg);
 
     return operations.verify(
       msg,
@@ -54,33 +80,37 @@ export class ECCKeyStore extends KeyStoreBase implements KeyStore {
       mergedCfg.charSize,
       mergedCfg.curve,
       mergedCfg.hashAlg
-    )
+    );
   }
 
   async encrypt(
     msg: string,
+    exchangeKeyName: string,
     publicKey: string,
     cfg?: Partial<Config>
   ): Promise<string> {
-    const mergedCfg = config.merge(this.cfg, cfg)
-    const exchangeKey = await this.exchangeKey()
+    const mergedCfg = config.merge(this.cfg, cfg);
+    const exchangeKey = await this.exchangeKey(exchangeKeyName);
 
-    return utils.arrBufToBase64(await operations.encrypt(
-      msg,
-      exchangeKey.privateKey as PrivateKey,
-      publicKey,
-      mergedCfg.charSize,
-      mergedCfg.curve
-    ))
+    return utils.arrBufToBase64(
+      await operations.encrypt(
+        msg,
+        exchangeKey.privateKey as PrivateKey,
+        publicKey,
+        mergedCfg.charSize,
+        mergedCfg.curve
+      )
+    );
   }
 
   async decrypt(
     cipherText: string,
+    exchangeKeyName: string,
     publicKey: string,
     cfg?: Partial<Config>
   ): Promise<string> {
-    const mergedCfg = config.merge(this.cfg, cfg)
-    const exchangeKey = await this.exchangeKey()
+    const mergedCfg = config.merge(this.cfg, cfg);
+    const exchangeKey = await this.exchangeKey(exchangeKeyName);
 
     return utils.arrBufToStr(
       await operations.decrypt(
@@ -90,18 +120,18 @@ export class ECCKeyStore extends KeyStoreBase implements KeyStore {
         mergedCfg.curve
       ),
       mergedCfg.charSize
-    )
+    );
   }
 
-  async publicExchangeKey(): Promise<string> {
-    const exchangeKey = await this.exchangeKey()
-    return operations.getPublicKey(exchangeKey)
+  async publicExchangeKey(exchangeKeyName: string): Promise<string> {
+    const exchangeKey = await this.exchangeKey(exchangeKeyName);
+    return operations.getPublicKey(exchangeKey);
   }
 
-  async publicWriteKey(): Promise<string> {
-    const writeKey = await this.writeKey()
-    return operations.getPublicKey(writeKey)
+  async publicWriteKey(writeKeyName: string): Promise<string> {
+    const writeKey = await this.writeKey(writeKeyName);
+    return operations.getPublicKey(writeKey);
   }
 }
 
-export default ECCKeyStore
+export default ECCKeyStore;
