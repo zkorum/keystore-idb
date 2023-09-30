@@ -2,7 +2,7 @@
 
 Forked from Fission keystore-idb with a breaking change that add supports for:
 
-- multiples keys per key store
+- multiple keys per key store
 - copy keypair within a key store from a name to another
 
 [![NPM](https://img.shields.io/npm/v/keystore-idb)](https://www.npmjs.com/package/keystore-idb)
