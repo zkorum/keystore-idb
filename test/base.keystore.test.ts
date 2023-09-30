@@ -1,233 +1,204 @@
-import aes from '../src/aes'
-import idb from '../src/idb'
-import config from '../src/config'
-import { mock, keystoreMethod } from './utils'
+import aes from "../src/aes";
+import idb from "../src/idb";
+import config from "../src/config";
+import { mock, keystoreMethod } from "./utils";
+import { DEFAULT_EXCHANGE_KEY_NAME } from "../src/constants";
 
-const defaultOpts = { alg: config.defaultConfig.symmAlg, length: config.defaultConfig.symmLen }
+const defaultOpts = {
+  alg: config.defaultConfig.symmAlg,
+  length: config.defaultConfig.symmLen,
+};
 
 describe("KeyStoreBase", () => {
-
   keystoreMethod({
-    desc: 'keyExists',
-    type: 'rsa',
+    desc: "keyExists",
+    type: "rsa",
     mocks: [
       {
         mod: idb,
-        meth: 'getKey', 
+        meth: "getKey",
         resp: null,
-        params: [
-          mock.symmKeyName,
-          mock.idbStore
-        ]
+        params: [mock.symmKeyName, mock.idbStore],
       },
     ],
     reqFn: (ks) => ks.keyExists(mock.symmKeyName),
     expectedResp: false,
-  })
-
+  });
 
   keystoreMethod({
-    desc: 'getSymmKey (exists)',
-    type: 'rsa',
+    desc: "getSymmKey (exists)",
+    type: "rsa",
     mocks: [
       {
         mod: idb,
-        meth: 'getKey', 
+        meth: "getKey",
         resp: mock.symmKey,
-        params: [
-          mock.symmKeyName,
-          mock.idbStore
-        ]
+        params: [mock.symmKeyName, mock.idbStore],
       },
     ],
     reqFn: (ks) => ks.getSymmKey(mock.symmKeyName),
     expectedResp: mock.symmKey,
-  })
+  });
 
   keystoreMethod({
-    desc: 'getSymmKey (does not exist)',
-    type: 'rsa',
+    desc: "getSymmKey (does not exist)",
+    type: "rsa",
     mocks: [
       {
         mod: idb,
-        meth: 'getKey', 
+        meth: "getKey",
         resp: null,
-        params: [
-          mock.symmKeyName,
-          mock.idbStore
-        ]
+        params: [mock.symmKeyName, mock.idbStore],
       },
-            {
+      {
         mod: aes,
-        meth: 'makeKey', 
+        meth: "makeKey",
         resp: mock.symmKey,
-        params: [
-          config.symmKeyOpts(config.defaultConfig)
-        ]
+        params: [config.symmKeyOpts(config.defaultConfig)],
       },
       {
         mod: idb,
-        meth: 'put', 
+        meth: "put",
         resp: null,
-        params: [
-          mock.symmKeyName,
-          mock.symmKey,
-          mock.idbStore
-        ]
+        params: [mock.symmKeyName, mock.symmKey, mock.idbStore],
       },
-
     ],
     reqFn: (ks) => ks.getSymmKey(mock.symmKeyName),
     expectedResp: mock.symmKey,
-  })
-
+  });
 
   keystoreMethod({
-    desc: 'importSymmKey',
-    type: 'rsa',
+    desc: "importSymmKey",
+    type: "rsa",
     mocks: [
       {
         mod: aes,
-        meth: 'importKey', 
+        meth: "importKey",
         resp: mock.symmKey,
-        params: [
-          mock.keyBase64,
-          defaultOpts
-        ]
+        params: [mock.keyBase64, defaultOpts],
       },
       {
         mod: idb,
-        meth: 'put', 
+        meth: "put",
         resp: undefined,
-        params: [
-          mock.symmKeyName,
-          mock.symmKey,
-          mock.idbStore
-        ]
-      }
+        params: [mock.symmKeyName, mock.symmKey, mock.idbStore],
+      },
     ],
     reqFn: (ks) => ks.importSymmKey(mock.keyBase64, mock.symmKeyName),
-  })
-
+  });
 
   keystoreMethod({
-    desc: 'exportSymmKey',
-    type: 'rsa',
+    desc: "exportSymmKey",
+    type: "rsa",
     mocks: [
       {
         mod: idb,
-        meth: 'getKey', 
+        meth: "getKey",
         resp: mock.symmKey,
-        params: [
-          mock.symmKeyName,
-          mock.idbStore
-        ]
+        params: [mock.symmKeyName, mock.idbStore],
       },
       {
         mod: aes,
-        meth: 'exportKey', 
+        meth: "exportKey",
         resp: mock.keyBase64,
-        params: [
-          mock.symmKey
-        ]
-      }
+        params: [mock.symmKey],
+      },
     ],
     reqFn: (ks) => ks.exportSymmKey(mock.symmKeyName),
-    expectedResp: mock.keyBase64
-  })
-
+    expectedResp: mock.keyBase64,
+  });
 
   keystoreMethod({
-    desc: 'encryptWithSymmKey',
-    type: 'rsa',
+    desc: "encryptWithSymmKey",
+    type: "rsa",
     mocks: [
       {
         mod: idb,
-        meth: 'getKey', 
+        meth: "getKey",
         resp: mock.symmKey,
-        params: [
-          mock.symmKeyName,
-          mock.idbStore
-        ]
+        params: [mock.symmKeyName, mock.idbStore],
       },
       {
         mod: aes,
-        meth: 'encryptBytes', 
+        meth: "encryptBytes",
         resp: mock.cipherBytes,
-        params: [
-          mock.msgBytes,
-          mock.symmKey,
-          defaultOpts
-        ]
-      }
+        params: [mock.msgBytes, mock.symmKey, defaultOpts],
+      },
     ],
     reqFn: (ks) => ks.encryptWithSymmKey(mock.msgStr, mock.symmKeyName),
-    expectedResp: mock.cipherStr
-  })
-
+    expectedResp: mock.cipherStr,
+  });
 
   keystoreMethod({
-    desc: 'decryptWithSymmKey',
-    type: 'rsa',
+    desc: "decryptWithSymmKey",
+    type: "rsa",
     mocks: [
       {
         mod: idb,
-        meth: 'getKey', 
+        meth: "getKey",
         resp: mock.symmKey,
-        params: [
-          mock.symmKeyName,
-          mock.idbStore
-        ]
+        params: [mock.symmKeyName, mock.idbStore],
       },
       {
         mod: aes,
-        meth: 'decryptBytes', 
+        meth: "decryptBytes",
         resp: mock.msgBytes,
-        params: [
-          mock.cipherBytes,
-          mock.symmKey,
-          defaultOpts
-        ]
-      }
+        params: [mock.cipherBytes, mock.symmKey, defaultOpts],
+      },
     ],
     reqFn: (ks) => ks.decryptWithSymmKey(mock.cipherStr, mock.symmKeyName),
-    expectedResp: mock.msgStr
-  })
-
+    expectedResp: mock.msgStr,
+  });
 
   keystoreMethod({
-    desc: 'deleteKey',
-    type: 'rsa',
+    desc: "deleteKey",
+    type: "rsa",
     mocks: [
       {
         mod: idb,
-        meth: 'rm', 
+        meth: "rm",
         resp: undefined,
-        params: [
-          mock.symmKeyName,
-          mock.idbStore
-        ]
-      }
+        params: [mock.symmKeyName, mock.idbStore],
+      },
     ],
     reqFn: (ks) => ks.deleteKey(mock.symmKeyName),
-    expectedResp: undefined
-  })
+    expectedResp: undefined,
+  });
 
   keystoreMethod({
-    desc: 'destory',
-    type: 'rsa',
+    desc: "destroy",
+    type: "rsa",
     mocks: [
       {
         mod: idb,
-        meth: 'dropStore', 
+        meth: "dropStore",
         resp: undefined,
-        params: [
-          mock.idbStore
-        ]
-      }
+        params: [mock.idbStore],
+      },
     ],
     reqFn: (ks) => ks.destroy(),
-    expectedResp: undefined
-  })
+    expectedResp: undefined,
+  });
 
-})
+  keystoreMethod({
+    desc: "copyKeypair",
+    type: "rsa",
+    mocks: [
+      {
+        mod: idb,
+        meth: "getKeypair",
+        resp: mock.keys,
+        params: [DEFAULT_EXCHANGE_KEY_NAME, mock.idbStore],
+      },
+      {
+        mod: idb,
+        meth: "put",
+        resp: mock.keys,
+        params: ["to-exchange-key-name", mock.keys, mock.idbStore],
+      },
+    ],
+    reqFn: (ks) =>
+      ks.copyKeypair(DEFAULT_EXCHANGE_KEY_NAME, "to-exchange-key-name"),
+    expectedResp: undefined,
+  });
+});

@@ -1,191 +1,180 @@
-import RSAKeyStore from '../src/rsa/keystore'
-import keys from '../src/rsa/keys'
-import operations from '../src/rsa/operations'
-import config, { defaultConfig } from '../src/config'
-import idb from '../src/idb'
-import { DEFAULT_CHAR_SIZE, DEFAULT_HASH_ALG } from '../src/constants'
-import { KeyUse, RsaSize, HashAlg, CryptoSystem } from '../src/types'
-import { mock, keystoreMethod } from './utils'
+import RSAKeyStore from "../src/rsa/keystore";
+import keys from "../src/rsa/keys";
+import operations from "../src/rsa/operations";
+import config from "../src/config";
+import idb from "../src/idb";
+import {
+  DEFAULT_CHAR_SIZE,
+  DEFAULT_EXCHANGE_KEY_NAME,
+  DEFAULT_HASH_ALG,
+  DEFAULT_WRITE_KEY_NAME,
+} from "../src/constants";
+import { KeyUse, RsaSize, HashAlg, CryptoSystem } from "../src/types";
+import { mock, keystoreMethod } from "./utils";
 
-jest.mock('../src/idb')
+jest.mock("../src/idb");
 
 describe("RSAKeyStore", () => {
   describe("init", () => {
-
-    let response: any
-    let fakeStore: jest.SpyInstance
-    let fakeMake: jest.SpyInstance
-    let fakeCreateifDNE: jest.SpyInstance
+    let response: any;
+    let fakeStore: jest.SpyInstance;
+    let fakeMake: jest.SpyInstance;
+    let fakeCreateifDNE: jest.SpyInstance;
 
     beforeAll(async () => {
-      fakeStore = jest.spyOn(idb, 'createStore')
-      fakeStore.mockReturnValue(mock.idbStore)
+      fakeStore = jest.spyOn(idb, "createStore");
+      fakeStore.mockReturnValue(mock.idbStore);
 
-      fakeMake = jest.spyOn(keys, 'makeKeypair')
-      fakeMake.mockResolvedValue(mock.keys)
+      fakeMake = jest.spyOn(keys, "makeKeypair");
+      fakeMake.mockResolvedValue(mock.keys);
 
-      fakeCreateifDNE = jest.spyOn(idb, 'createIfDoesNotExist')
+      fakeCreateifDNE = jest.spyOn(idb, "createIfDoesNotExist");
       fakeCreateifDNE.mockImplementation((_name, makeFn) => {
-        makeFn()
-      })
+        makeFn();
+      });
 
-      response = await RSAKeyStore.init({ exchangeKeyName: 'test-exchange', writeKeyName: 'test-write' })
-    })
+      response = await (
+        await RSAKeyStore.init({})
+      ).addKeypair(DEFAULT_WRITE_KEY_NAME, DEFAULT_EXCHANGE_KEY_NAME);
+      response.addKeypair(DEFAULT_WRITE_KEY_NAME, DEFAULT_EXCHANGE_KEY_NAME);
+    });
 
-    it('should initialize a keystore with expected params', () => {
+    it("should initialize a keystore with expected params", () => {
       let cfg = config.normalize({
         type: CryptoSystem.RSA,
-        exchangeKeyName: 'test-exchange',
-        writeKeyName: 'test-write'
-      })
-      const keystore = new RSAKeyStore(cfg, mock.idbStore)
-      expect(response).toStrictEqual(keystore)
-    })
+      });
+      const keystore = new RSAKeyStore(cfg, mock.idbStore);
+      keystore.addKeypair(DEFAULT_WRITE_KEY_NAME, DEFAULT_EXCHANGE_KEY_NAME);
+      expect(response).toStrictEqual(keystore);
+    });
 
-    it('should call createIfDoesNotExist with correct params (exchange key)', () => {
-      expect(fakeCreateifDNE.mock.calls[0][0]).toEqual('test-exchange')
-      expect(fakeCreateifDNE.mock.calls[0][2]).toEqual(mock.idbStore)
-    })
+    it("should call createIfDoesNotExist with correct params (exchange key)", () => {
+      expect(fakeCreateifDNE.mock.calls[0][0]).toEqual("exchange-key");
+      expect(fakeCreateifDNE.mock.calls[0][2]).toEqual(mock.idbStore);
+    });
 
-    it('should call createIfDoesNotExist with correct params (write key)', () => {
-      expect(fakeCreateifDNE.mock.calls[1][0]).toEqual('test-write')
-      expect(fakeCreateifDNE.mock.calls[1][2]).toEqual(mock.idbStore)
-    })
+    it("should call createIfDoesNotExist with correct params (write key)", () => {
+      expect(fakeCreateifDNE.mock.calls[1][0]).toEqual("write-key");
+      expect(fakeCreateifDNE.mock.calls[1][2]).toEqual(mock.idbStore);
+    });
 
-    it('should call makeKeypair with correct params (exchange key)', () => {
+    it("should call makeKeypair with correct params (exchange key)", () => {
       expect(fakeMake.mock.calls[0]).toEqual([
         RsaSize.B2048,
         HashAlg.SHA_256,
-        KeyUse.Exchange
-      ])
-    })
+        KeyUse.Exchange,
+      ]);
+    });
 
-    it('should call makeKeypair with correct params (write key)', () => {
+    it("should call makeKeypair with correct params (write key)", () => {
       expect(fakeMake.mock.calls[1]).toEqual([
         RsaSize.B2048,
         HashAlg.SHA_256,
-        KeyUse.Write
-      ])
-    })
-
-  })
-
+        KeyUse.Write,
+      ]);
+    });
+  });
 
   keystoreMethod({
-    desc: 'sign',
-    type: 'rsa',
+    desc: "sign",
+    type: "rsa",
     mocks: [
       {
         mod: operations,
-        meth: 'sign',
+        meth: "sign",
         resp: mock.sigBytes,
-        params: [
-          mock.msgStr,
-          mock.writeKeys.privateKey,
-          DEFAULT_CHAR_SIZE
-        ]
-      }
+        params: [mock.msgStr, mock.writeKeys.privateKey, DEFAULT_CHAR_SIZE],
+      },
     ],
-    reqFn: (ks) => ks.sign(mock.msgStr),
+    reqFn: (ks) => ks.sign(mock.msgStr, DEFAULT_WRITE_KEY_NAME),
     expectedResp: mock.sigStr,
-  })
-
+  });
 
   keystoreMethod({
-    desc: 'verify',
-    type: 'rsa',
+    desc: "verify",
+    type: "rsa",
     mocks: [
       {
         mod: operations,
-        meth: 'verify',
+        meth: "verify",
         resp: true,
         params: [
           mock.msgStr,
           mock.sigStr,
           mock.keyBase64,
           DEFAULT_CHAR_SIZE,
-          DEFAULT_HASH_ALG
-        ]
-      }
+          DEFAULT_HASH_ALG,
+        ],
+      },
     ],
     reqFn: (ks) => ks.verify(mock.msgStr, mock.sigStr, mock.keyBase64),
     expectedResp: true,
-  })
-
+  });
 
   keystoreMethod({
-    desc: 'encrypt',
-    type: 'rsa',
+    desc: "encrypt",
+    type: "rsa",
     mocks: [
       {
         mod: operations,
-        meth: 'encrypt',
+        meth: "encrypt",
         resp: mock.cipherBytes,
         params: [
           mock.msgStr,
           mock.keyBase64,
           DEFAULT_CHAR_SIZE,
-          DEFAULT_HASH_ALG
-        ]
-      }
-    ],
-    reqFn: (ks) => ks.encrypt(mock.msgStr, mock.keyBase64),
-    expectedResp: mock.cipherStr,
-  })
-
-
-  keystoreMethod({
-    desc: 'decrypt',
-    type: 'rsa',
-    mocks: [
-      {
-        mod: operations,
-        meth: 'decrypt',
-        resp: mock.msgBytes,
-        params: [
-          mock.cipherStr,
-          mock.keys.privateKey
-        ]
+          DEFAULT_HASH_ALG,
+        ],
       },
     ],
-    reqFn: (ks) => ks.decrypt(mock.cipherStr, mock.keyBase64),
+    reqFn: (ks) =>
+      ks.encrypt(mock.msgStr, mock.keyBase64, DEFAULT_EXCHANGE_KEY_NAME),
+    expectedResp: mock.cipherStr,
+  });
+
+  keystoreMethod({
+    desc: "decrypt",
+    type: "rsa",
+    mocks: [
+      {
+        mod: operations,
+        meth: "decrypt",
+        resp: mock.msgBytes,
+        params: [mock.cipherStr, mock.keys.privateKey],
+      },
+    ],
+    reqFn: (ks) =>
+      ks.decrypt(mock.cipherStr, DEFAULT_EXCHANGE_KEY_NAME, mock.keyBase64),
     expectedResp: mock.msgStr,
-  })
-
+  });
 
   keystoreMethod({
-    desc: 'publicExchangeKey',
-    type: 'rsa',
+    desc: "publicExchangeKey",
+    type: "rsa",
     mocks: [
       {
         mod: operations,
-        meth: 'getPublicKey',
+        meth: "getPublicKey",
         resp: mock.keyBase64,
-        params: [
-          mock.keys
-        ]
-      }
+        params: [mock.keys],
+      },
     ],
-    reqFn: (ks) => ks.publicExchangeKey(),
+    reqFn: (ks) => ks.publicExchangeKey(DEFAULT_EXCHANGE_KEY_NAME),
     expectedResp: mock.keyBase64,
-  })
-
+  });
 
   keystoreMethod({
-    desc: 'publicWriteKey',
-    type: 'rsa',
+    desc: "publicWriteKey",
+    type: "rsa",
     mocks: [
       {
         mod: operations,
-        meth: 'getPublicKey',
+        meth: "getPublicKey",
         resp: mock.keyBase64,
-        params: [
-          mock.writeKeys
-        ]
-      }
+        params: [mock.writeKeys],
+      },
     ],
-    reqFn: (ks) => ks.publicWriteKey(),
+    reqFn: (ks) => ks.publicWriteKey(DEFAULT_WRITE_KEY_NAME),
     expectedResp: mock.keyBase64,
-  })
-
-})
+  });
+});

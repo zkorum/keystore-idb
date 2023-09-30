@@ -85,8 +85,8 @@ export class ECCKeyStore extends KeyStoreBase implements KeyStore {
 
   async encrypt(
     msg: string,
-    exchangeKeyName: string,
     publicKey: string,
+    exchangeKeyName: string,
     cfg?: Partial<Config>
   ): Promise<string> {
     const mergedCfg = config.merge(this.cfg, cfg);

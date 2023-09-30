@@ -14,14 +14,10 @@ export default class KeyStoreBase {
     this.store = store;
   }
 
-  async copyKeypair(
-    fromKeyName: string,
-    toKeyName: string
-  ): Promise<CryptoKeyPair> {
+  async copyKeypair(fromKeyName: string, toKeyName: string): Promise<void> {
     const maybeKeypair = await idb.getKeypair(fromKeyName, this.store);
     const keypair = checkIsKeyPair(maybeKeypair);
-    const newKeyPair = idb.put(toKeyName, keypair, this.store);
-    return checkIsKeyPair(newKeyPair);
+    await idb.put(toKeyName, keypair, this.store);
   }
 
   async writeKey(writeKeyName: string): Promise<CryptoKeyPair> {

@@ -74,6 +74,7 @@ export interface KeyStore {
 
   exchangeKey: (exchangeKeyName: string) => Promise<CryptoKeyPair>;
   writeKey: (writeKeyName: string) => Promise<CryptoKeyPair>;
+  copyKeypair(fromKeyName: string, toKeyName: string): Promise<void>;
   getSymmKey: (keyName: string, cfg?: Partial<Config>) => Promise<CryptoKey>;
   keyExists(keyName: string): Promise<boolean>;
   deleteKey(keyName: string): Promise<void>;
