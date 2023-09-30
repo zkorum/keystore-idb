@@ -1,9 +1,9 @@
 # IndexedDB KeyStore
 
-Forked from Fission keystore-idb with a breaking change that add supports for:
+Forked from Fission keystore-idb with a breaking change that adds support for:
 
 - multiple keys per key store
-- copy keypair within a key store from a name to another
+- copy keypair within a key store from a key name to another
 
 [![NPM](https://img.shields.io/npm/v/keystore-idb)](https://www.npmjs.com/package/keystore-idb)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/fission-suite/blob/master/LICENSE)
