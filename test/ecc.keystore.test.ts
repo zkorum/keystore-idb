@@ -35,15 +35,21 @@ describe("ECCKeyStore", () => {
       });
 
       response = await ECCKeyStore.init({});
-      response.addKeypair(DEFAULT_WRITE_KEY_NAME, DEFAULT_EXCHANGE_KEY_NAME);
+      await response.createIfDoesNotExist(
+        DEFAULT_WRITE_KEY_NAME,
+        DEFAULT_EXCHANGE_KEY_NAME
+      );
     });
 
-    it("should initialize a keystore with expected params", () => {
+    it("should initialize a keystore with expected params", async () => {
       let cfg = config.normalize({
         type: CryptoSystem.ECC,
       });
       const keystore = new ECCKeyStore(cfg, mock.idbStore);
-      keystore.addKeypair(DEFAULT_WRITE_KEY_NAME, DEFAULT_EXCHANGE_KEY_NAME);
+      await keystore.createIfDoesNotExist(
+        DEFAULT_WRITE_KEY_NAME,
+        DEFAULT_EXCHANGE_KEY_NAME
+      );
       expect(response).toStrictEqual(keystore);
     });
 

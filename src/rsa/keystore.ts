@@ -31,7 +31,7 @@ export class RSAKeyStore extends KeyStoreBase implements KeyStore {
     return new RSAKeyStore(cfg, store);
   }
 
-  async addKeypair(
+  async createIfDoesNotExist(
     writeKeyName: string,
     exchangeKeyName: string
   ): Promise<RSAKeyStore> {

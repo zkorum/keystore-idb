@@ -30,7 +30,7 @@ export class ECCKeyStore extends KeyStoreBase implements KeyStore {
     return new ECCKeyStore(cfg, store);
   }
 
-  async addKeypair(
+  async createIfDoesNotExist(
     writeKeyName: string,
     exchangeKeyName: string
   ): Promise<ECCKeyStore> {

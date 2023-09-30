@@ -60,7 +60,10 @@ export const keystoreMethod = (opts: KeystoreMethodOpts): void => {
         opts.type === "ecc"
           ? new ECCKeyStore(config.defaultConfig, mock.idbStore)
           : new RSAKeyStore(config.defaultConfig, mock.idbStore);
-      ks.addKeypair(DEFAULT_WRITE_KEY_NAME, DEFAULT_EXCHANGE_KEY_NAME);
+      await ks.createIfDoesNotExist(
+        DEFAULT_WRITE_KEY_NAME,
+        DEFAULT_EXCHANGE_KEY_NAME
+      );
       response = await opts.reqFn(ks);
     });
 
