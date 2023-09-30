@@ -1,6 +1,6 @@
 {
-  "name": "keystore-idb",
-  "version": "0.17.0",
+  "name": "@zkorum/keystore-idb",
+  "version": "0.16.0",
   "description": "In-browser key management with IndexedDB and the Web Crypto API",
   "keywords": [],
   "type": "module",

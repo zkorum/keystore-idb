@@ -1,6 +1,6 @@
 # IndexedDB KeyStore
 
-Forked from Fission keystore-idb with a breaking change that add support for:
+Forked from Fission keystore-idb with a breaking change that add supports for:
 
 - multiples keys per key store
 - copy keypair within a key store from a name to another
