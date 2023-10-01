@@ -5,6 +5,10 @@ Forked from Fission keystore-idb with a breaking change that adds support for:
 - multiple keys per key store
 - copy keypair within a key store from a key name to another
 
+Also added:
+
+- `function keypairExists(keyName: string): Promise<boolean>`
+
 [![NPM](https://img.shields.io/npm/v/keystore-idb)](https://www.npmjs.com/package/keystore-idb)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/fission-suite/blob/master/LICENSE)
 [![Maintainability](https://api.codeclimate.com/v1/badges/b0fabd7e80c6bd2c0c7b/maintainability)](https://codeclimate.com/github/fission-suite/keystore-idb/maintainability)
@@ -81,11 +85,11 @@ async function run() {
   console.log("decipher: ", decipher);
 }
 
-  const newExchangeKeyName1 = "new-exchange-key-1";
-  const newWriteKeyName1 = "new-write-key-1";
-  await ks1.copyKeypair(exchangeKeyName1, newExchangeKeyName1);
-  await ks1.copyKeypair(writeKeyName1, newWriteKeyName1);
-  // The above two commands made writeKey1 and exchangeKey1 available from new keynames.
+const newExchangeKeyName1 = "new-exchange-key-1";
+const newWriteKeyName1 = "new-write-key-1";
+await ks1.copyKeypair(exchangeKeyName1, newExchangeKeyName1);
+await ks1.copyKeypair(writeKeyName1, newWriteKeyName1);
+// The above two commands made writeKey1 and exchangeKey1 available from new keynames.
 
 run();
 ```

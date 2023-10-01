@@ -26,6 +26,21 @@ describe("KeyStoreBase", () => {
   });
 
   keystoreMethod({
+    desc: "keypairExists",
+    type: "rsa",
+    mocks: [
+      {
+        mod: idb,
+        meth: "getKeypair",
+        resp: mock.keys,
+        params: [DEFAULT_EXCHANGE_KEY_NAME, mock.idbStore],
+      },
+    ],
+    reqFn: (ks) => ks.keypairExists(DEFAULT_EXCHANGE_KEY_NAME),
+    expectedResp: true,
+  });
+
+  keystoreMethod({
     desc: "getSymmKey (exists)",
     type: "rsa",
     mocks: [

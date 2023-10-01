@@ -46,6 +46,11 @@ export default class KeyStoreBase {
     return key !== null;
   }
 
+  async keypairExists(keyName: string): Promise<boolean> {
+    const keypair = await idb.getKeypair(keyName, this.store);
+    return keypair !== null;
+  }
+
   async deleteKey(keyName: string): Promise<void> {
     return idb.rm(keyName, this.store);
   }

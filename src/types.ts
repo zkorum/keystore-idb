@@ -77,6 +77,7 @@ export interface KeyStore {
   copyKeypair(fromKeyName: string, toKeyName: string): Promise<void>;
   getSymmKey: (keyName: string, cfg?: Partial<Config>) => Promise<CryptoKey>;
   keyExists(keyName: string): Promise<boolean>;
+  keypairExists(keyName: string): Promise<boolean>;
   deleteKey(keyName: string): Promise<void>;
   destroy(): Promise<void>;
 
