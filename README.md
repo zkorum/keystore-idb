@@ -2,7 +2,7 @@
 
 Forked from Fission keystore-idb with a breaking change that adds support for:
 
-- multiple keys per key store
+- multiple keypairs per key store
 - copy keypair within a key store from a key name to another
 
 Also added:
