@@ -47,6 +47,23 @@ export class ECCKeyStore extends KeyStoreBase implements KeyStore {
     return this;
   }
 
+  async createOverwriteIfAlreadyExists(
+    writeKeyName: string,
+    exchangeKeyName: string
+  ): Promise<ECCKeyStore> {
+    await IDB.createOverwriteIfAlreadyExists(
+      exchangeKeyName,
+      () => keys.makeKeypair(this.cfg.curve, KeyUse.Exchange),
+      this.store
+    );
+    await IDB.createOverwriteIfAlreadyExists(
+      writeKeyName,
+      () => keys.makeKeypair(this.cfg.curve, KeyUse.Write),
+      this.store
+    );
+    return this;
+  }
+
   async sign(
     msg: string,
     writeKeyName: string,

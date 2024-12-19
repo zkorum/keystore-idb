@@ -49,6 +49,24 @@ export class RSAKeyStore extends KeyStoreBase implements KeyStore {
     return this;
   }
 
+  async createOverwriteIfAlreadyExists(
+    writeKeyName: string,
+    exchangeKeyName: string
+  ): Promise<RSAKeyStore> {
+    await IDB.createOverwriteIfAlreadyExists(
+      exchangeKeyName,
+      () =>
+        keys.makeKeypair(this.cfg.rsaSize, this.cfg.hashAlg, KeyUse.Exchange),
+      this.store
+    );
+    await IDB.createOverwriteIfAlreadyExists(
+      writeKeyName,
+      () => keys.makeKeypair(this.cfg.rsaSize, this.cfg.hashAlg, KeyUse.Write),
+      this.store
+    );
+    return this;
+  }
+
   async sign(
     msg: Msg,
     writeKeyName: string,
